@@ -1,35 +1,61 @@
 """
-Google News Scraper: A Quick Start Example
-See more at: https://apify.com/johnvc/googlenewsapi?fpr=9n7kx3
-Input schema: https://apify.com/johnvc/googlenewsapi/input-schema?fpr=9n7kx3
+Example: call the Google News API Apify Actor from Python.
 
-This script demonstrates how to scrape Google News search results using the
-Google News API scraper on Apify. Returns article titles, links, sources,
-snippets, and publication dates as structured JSON.
+Get a free Apify API key at: https://apify.com?fpr=9n7kx3
+Set it in a .env file (see .env.example) or export APIFY_API_TOKEN.
 
-Get your free Apify API key at: https://apify.com?fpr=9n7kx3
+The example fetches a single page so the first run is inexpensive. Raise
+max_pages when you want deeper coverage; each page is billed separately.
 """
 
 import os
-from dotenv import load_dotenv
+
 from apify_client import ApifyClient
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize the ApifyClient with your API token
-client = ApifyClient(os.getenv("APIFY_API_TOKEN"))
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
+if not APIFY_API_TOKEN:
+    raise SystemExit(
+        "APIFY_API_TOKEN is not set. Copy .env.example to .env and add your key, "
+        "or run: export APIFY_API_TOKEN=your_api_key_here"
+    )
 
-# Prepare the Actor input
+client = ApifyClient(APIFY_API_TOKEN)
+
+# Inputs are kept small so the first run is inexpensive: one page of results.
 run_input = {
-    "q": "artificial intelligence breakthroughs 2025",
+    "q": "artificial intelligence",
     "gl": "us",
     "hl": "en",
-    "max_pages": 2,
+    "max_pages": 1,
 }
 
-# Run the Actor and wait for it to finish
-run = client.actor("johnvc/googlenewsapi").call(run_input=run_input)
+print(f"Searching Google News for: {run_input['q']}")
+run = client.actor("johnvc/GoogleNewsAPI").call(run_input=run_input)
 
-# Fetch and print Actor results from the run's dataset
-for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-    print(item)
+if run is None:
+    raise SystemExit("The Actor run did not start. Check your API token and inputs.")
+
+# One dataset item is returned per page; each page holds a news_results list.
+for page in client.dataset(run.default_dataset_id).iterate_items():
+    metadata = page.get("search_metadata", {})
+    articles = page.get("news_results", [])
+    print(
+        f"\nPage {page.get('page_number', '?')}: "
+        f"{len(articles)} articles (total found: {metadata.get('total_results', 'n/a')})\n"
+    )
+
+    for article in articles:
+        title = article.get("title", "")
+        source = article.get("source", "")
+        link = article.get("link", "")
+        snippet = (article.get("snippet") or "").replace("\n", " ").strip()
+
+        print(f"{article.get('position', '?')}. {title}")
+        print(f"   Source:  {source}")
+        print(f"   Link:    {link}")
+        if snippet:
+            print(f"   Snippet: {snippet[:160]}...")
+        print()
