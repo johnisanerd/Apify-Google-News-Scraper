@@ -299,4 +299,4 @@ More help: https://docs.apify.com/platform/integrations/mcp
 
 *Use the Google News API to power media monitoring, competitive intelligence, trend detection, and LLM context pipelines with reliable, structured results.*
 
-Last Updated: 2026.06.04
+Last Updated: 2026.06.05
