@@ -299,4 +299,10 @@ More help: https://docs.apify.com/platform/integrations/mcp
 
 *Use the Google News API to power media monitoring, competitive intelligence, trend detection, and LLM context pipelines with reliable, structured results.*
 
+## Featured Tasks
+
+Ready-to-run examples on the Apify Store.
+
+- [Export Google News Results to CSV](https://apify.com/johnvc/GoogleNewsAPI/examples/export-google-news-results-to-csv?fpr=9n7kx3)
+
 Last Updated: 2026.06.15
